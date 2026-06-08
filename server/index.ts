@@ -41,27 +41,48 @@ function getAcceptanceEmailTemplate(name: string, position: string) {
     <html>
       <head>
         <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #0066cc 0%, #004499 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-          .button { display: inline-block; background: #0066cc; color: white; padding: 12px 24px; border-radius: 4px; text-decoration: none; margin-top: 15px; }
-          .footer { font-size: 12px; color: #999; margin-top: 20px; text-align: center; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+          .container { max-width: 600px; margin: 20px auto; padding: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #0066cc 0%, #004499 100%); color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+          .content { padding: 30px 20px; }
+          .content p { margin: 15px 0; line-height: 1.6; }
+          .highlight { background: #e3f2fd; padding: 15px; border-left: 4px solid #0066cc; margin: 20px 0; border-radius: 4px; }
+          .button { display: inline-block; background: #0066cc; color: white; padding: 12px 28px; border-radius: 4px; text-decoration: none; margin-top: 20px; font-weight: 600; }
+          .footer { background: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #999; }
+          .social { margin-top: 15px; }
+          .social a { color: #0066cc; text-decoration: none; margin: 0 10px; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>¡Felicidades, ${name}!</h1>
+            <h1>🎉 ¡Felicidades, ${name}!</h1>
           </div>
           <div class="content">
-            <p>Has sido <strong>aceptado</strong> para una entrevista en el equipo de NextCAD.</p>
-            <p>Posición solicitada: <strong>${position}</strong></p>
-            <p>Pronto nos pondremos en contacto contigo a través de Discord para coordinar la entrevista.</p>
-            <p>Si tienes preguntas, no dudes en contactarnos.</p>
-            <a href="https://discord.gg/njWS5rhnPh" class="button">Ir al Discord</a>
+            <p>Nos complace informarte que has sido <strong>aceptado</strong> para una entrevista en el equipo de <strong>NextCAD</strong>.</p>
+            
+            <div class="highlight">
+              <strong>Posición Solicitada:</strong><br>
+              ${position}
+            </div>
+            
+            <p>Pronto nos pondremos en contacto contigo a través de <strong>Discord</strong> para coordinar los detalles de tu entrevista.</p>
+            
+            <p><strong>Próximos pasos:</strong></p>
+            <ul>
+              <li>Revisa tu Discord para mensajes de nuestro equipo</li>
+              <li>Prepárate para discutir tu experiencia y habilidades</li>
+              <li>Si tienes preguntas, no dudes en contactarnos</li>
+            </ul>
+            
+            <p>¡Esperamos conocerte pronto!</p>
+            
+            <a href="https://discord.gg/njWS5rhnPh" class="button">📱 Ir al Discord de NextCAD</a>
+            
             <div class="footer">
-              <p>NextCAD - Solución Completa para Comunidades ER:LC</p>
+              <p><strong>NextCAD</strong> - Solución Completa para Comunidades ER:LC</p>
+              <p>Este es un mensaje automático. Por favor, no respondas a este correo.</p>
             </div>
           </div>
         </div>
@@ -76,25 +97,48 @@ function getRejectionEmailTemplate(name: string) {
     <html>
       <head>
         <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #666 0%, #333 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-          .footer { font-size: 12px; color: #999; margin-top: 20px; text-align: center; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
+          .container { max-width: 600px; margin: 20px auto; padding: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+          .header { background: linear-gradient(135deg, #666 0%, #333 100%); color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+          .content { padding: 30px 20px; }
+          .content p { margin: 15px 0; line-height: 1.6; }
+          .highlight { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; border-radius: 4px; }
+          .button { display: inline-block; background: #666; color: white; padding: 12px 28px; border-radius: 4px; text-decoration: none; margin-top: 20px; font-weight: 600; }
+          .footer { background: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #999; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>Gracias por tu interés</h1>
+            <h1>Gracias por tu Interés</h1>
           </div>
           <div class="content">
             <p>Hola ${name},</p>
-            <p>Agradecemos sinceramente tu interés en unirte al equipo de NextCAD.</p>
-            <p>Después de revisar tu solicitud, en esta ocasión no hemos podido aceptarla. Sin embargo, te animamos a intentarlo nuevamente en el futuro.</p>
-            <p>Esperamos poder trabajar contigo pronto.</p>
+            
+            <p>Agradecemos sinceramente tu interés en unirte al equipo de <strong>NextCAD</strong> y el tiempo que dedicaste a completar tu solicitud.</p>
+            
+            <div class="highlight">
+              <strong>Decisión de Selección:</strong><br>
+              Después de revisar cuidadosamente tu solicitud, en esta ocasión no hemos podido avanzar con tu candidatura.
+            </div>
+            
+            <p>Esto no significa que no tengas las habilidades necesarias. Simplemente, otros candidatos se ajustaban mejor a nuestras necesidades actuales.</p>
+            
+            <p><strong>Te animamos a:</strong></p>
+            <ul>
+              <li>Intentarlo nuevamente en el futuro</li>
+              <li>Mejorar tus habilidades en áreas específicas</li>
+              <li>Mantenerte en contacto con nuestro servidor de Discord</li>
+            </ul>
+            
+            <p>¡Esperamos poder trabajar contigo pronto!</p>
+            
+            <a href="https://discord.gg/njWS5rhnPh" class="button">📱 Únete a nuestro Discord</a>
+            
             <div class="footer">
-              <p>NextCAD - Solución Completa para Comunidades ER:LC</p>
+              <p><strong>NextCAD</strong> - Solución Completa para Comunidades ER:LC</p>
+              <p>Este es un mensaje automático. Por favor, no respondas a este correo.</p>
             </div>
           </div>
         </div>

@@ -1,0 +1,8 @@
+{
+  "name": "NextCAD Sales Website",
+  "description": "Sitio web de ventas y marketing para NextCAD orientado a clientes",
+  "version": "1.0.0",
+  "type": "web-static",
+  "theme": "light",
+  "palette": "professional-modern"
+}

@@ -1,0 +1,8 @@
+[2026-06-08T14:49:52.088Z] {"timestamp":1780930191789,"level":"ERROR","args":[{"type":"Error","message":"Error al enviar la solicitud","stack":"@https://3002-i1bn693vyb9y9to1wt0e2-f752a6fe.us1.manus.computer/assets/index-BFsVyX32.js:460:42136"}],"stack":"@https://3002-i1bn693vyb9y9to1wt0e2-f752a6fe.us1.manus.computer/__manus__/debug-collector.js:391:46\n@https://3002-i1bn693vyb9y9to1wt0e2-f752a6fe.us1.manus.computer/assets/index-BFsVyX32.js:460:42450"}
+[2026-06-08T14:50:22.560Z] {"timestamp":1780930220408,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-06-08T14:50:22.560Z] {"timestamp":1780930220674,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-06-08T14:51:58.762Z] {"timestamp":1780930317137,"level":"ERROR","args":[{"type":"Error","message":"Error al enviar la solicitud","stack":"@https://3002-i1bn693vyb9y9to1wt0e2-f752a6fe.us1.manus.computer/src/components/InterviewRequestModal.tsx:67:24"}],"stack":"@https://3002-i1bn693vyb9y9to1wt0e2-f752a6fe.us1.manus.computer/__manus__/debug-collector.js:391:46\n@https://3002-i1bn693vyb9y9to1wt0e2-f752a6fe.us1.manus.computer/src/components/InterviewRequestModal.tsx:88:20"}
+[2026-06-08T14:52:11.198Z] {"timestamp":1780930329062,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-06-08T14:52:11.198Z] {"timestamp":1780930329250,"level":"DEBUG","args":["[vite] connected."],"stack":null}
+[2026-06-08T15:00:25.903Z] {"timestamp":1780930823738,"level":"DEBUG","args":["[Manus] Debug collector initialized (no rrweb, UI events only)"],"stack":null}
+[2026-06-08T15:00:25.903Z] {"timestamp":1780930824034,"level":"DEBUG","args":["[vite] connected."],"stack":null}

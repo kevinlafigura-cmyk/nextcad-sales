@@ -16,16 +16,17 @@ var transporter = nodemailer.createTransport({
 });
 async function sendEmail(to, subject, htmlContent) {
   try {
+    console.log(`\u{1F4E7} Intentando enviar email a ${to}...`);
     await transporter.sendMail({
       from: process.env.GMAIL_ADDRESS,
       to,
       subject,
       html: htmlContent
     });
-    console.log(`Email enviado a ${to}`);
+    console.log(`\u2705 Email enviado exitosamente a ${to}`);
     return true;
   } catch (error) {
-    console.error(`Error enviando email a ${to}:`, error);
+    console.error(`\u274C Error enviando email a ${to}:`, error);
     return false;
   }
 }
@@ -92,40 +93,38 @@ function getRejectionEmailTemplate(name) {
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 0; padding: 0; background: #f5f5f5; }
           .container { max-width: 600px; margin: 20px auto; padding: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-          .header { background: linear-gradient(135deg, #666 0%, #333 100%); color: white; padding: 30px 20px; text-align: center; }
+          .header { background: linear-gradient(135deg, #ff6b6b 0%, #cc5555 100%); color: white; padding: 30px 20px; text-align: center; }
           .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
           .content { padding: 30px 20px; }
           .content p { margin: 15px 0; line-height: 1.6; }
-          .highlight { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; border-radius: 4px; }
-          .button { display: inline-block; background: #666; color: white; padding: 12px 28px; border-radius: 4px; text-decoration: none; margin-top: 20px; font-weight: 600; }
+          .highlight { background: #ffe3e3; padding: 15px; border-left: 4px solid #ff6b6b; margin: 20px 0; border-radius: 4px; }
+          .button { display: inline-block; background: #ff6b6b; color: white; padding: 12px 28px; border-radius: 4px; text-decoration: none; margin-top: 20px; font-weight: 600; }
           .footer { background: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #999; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1>Gracias por tu Inter\xE9s</h1>
+            <h1>Gracias por tu inter\xE9s</h1>
           </div>
           <div class="content">
             <p>Hola ${name},</p>
             
-            <p>Agradecemos sinceramente tu inter\xE9s en unirte al equipo de <strong>NextCAD</strong> y el tiempo que dedicaste a completar tu solicitud.</p>
+            <p>Agradecemos sinceramente tu inter\xE9s en unirte al equipo de <strong>NextCAD</strong>. Hemos revisado cuidadosamente tu solicitud y, en esta ocasi\xF3n, hemos decidido continuar con otros candidatos que se ajustan mejor a nuestras necesidades actuales.</p>
             
             <div class="highlight">
-              <strong>Decisi\xF3n de Selecci\xF3n:</strong><br>
-              Despu\xE9s de revisar cuidadosamente tu solicitud, en esta ocasi\xF3n no hemos podido avanzar con tu candidatura.
+              <strong>\xA1No te desanimes!</strong><br>
+              Esto no significa que no seas un excelente candidato. Te invitamos a que vuelvas a aplicar en el futuro cuando se abran nuevas posiciones.
             </div>
             
-            <p>Esto no significa que no tengas las habilidades necesarias. Simplemente, otros candidatos se ajustaban mejor a nuestras necesidades actuales.</p>
-            
-            <p><strong>Te animamos a:</strong></p>
+            <p><strong>Pr\xF3ximos pasos:</strong></p>
             <ul>
-              <li>Intentarlo nuevamente en el futuro</li>
-              <li>Mejorar tus habilidades en \xE1reas espec\xEDficas</li>
-              <li>Mantenerte en contacto con nuestro servidor de Discord</li>
+              <li>Mantente en contacto con nuestro servidor de Discord</li>
+              <li>Sigue mejorando tus habilidades</li>
+              <li>Aplica nuevamente cuando se abran nuevas oportunidades</li>
             </ul>
             
-            <p>\xA1Esperamos poder trabajar contigo pronto!</p>
+            <p>\xA1Mucho \xE9xito en tu camino!</p>
             
             <a href="https://discord.gg/njWS5rhnPh" class="button">\u{1F4F1} \xDAnete a nuestro Discord</a>
             
@@ -147,17 +146,24 @@ async function startServer() {
   app.use(express.json());
   const staticPath = process.env.NODE_ENV === "production" ? path.resolve(__dirname, "public") : path.resolve(__dirname, "..", "dist", "public");
   app.use(express.static(staticPath));
+  console.log("\u{1F680} Iniciando servidor NextCAD...");
+  console.log(`\u{1F4C1} Static path: ${staticPath}`);
+  console.log(`\u{1F4E7} Gmail: ${process.env.GMAIL_ADDRESS}`);
+  console.log(`\u{1F517} Discord Webhook: ${process.env.DISCORD_WEBHOOK_URL ? "\u2705 Configurado" : "\u274C No configurado"}`);
   app.post("/api/interview-request", async (req, res) => {
     try {
+      console.log("\n\u{1F4DD} Nueva solicitud recibida:", req.body);
       const { name, email, discord, robloxUser, position, message } = req.body;
       if (!name || !email || !discord || !robloxUser || !position || !message) {
+        console.log("\u274C Faltan campos requeridos");
         return res.status(400).json({ error: "Faltan campos requeridos" });
       }
       if (message.length < 50) {
+        console.log("\u274C Mensaje muy corto");
         return res.status(400).json({ error: "El mensaje debe tener al menos 50 caracteres" });
       }
       const requestId = requestIdCounter++;
-      requestsStore.push({
+      const newRequest = {
         id: requestId,
         name,
         email,
@@ -167,7 +173,9 @@ async function startServer() {
         message,
         status: "pending",
         created_at: /* @__PURE__ */ new Date()
-      });
+      };
+      requestsStore.push(newRequest);
+      console.log(`\u2705 Solicitud guardada con ID #${requestId}`);
       const positionLabel = {
         soporte: "Soporte",
         administracion: "Administraci\xF3n",
@@ -192,46 +200,29 @@ async function startServer() {
             ],
             footer: { text: "NextCAD - Sistema de Solicitudes" }
           }
-        ],
-        components: [
-          {
-            type: 1,
-            components: [
-              {
-                type: 2,
-                label: "\u2705 Aceptar",
-                style: 3,
-                custom_id: `accept_${requestId}`
-              },
-              {
-                type: 2,
-                label: "\u274C Rechazar",
-                style: 4,
-                custom_id: `reject_${requestId}`
-              }
-            ]
-          }
         ]
       };
       const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
       if (webhookUrl) {
+        console.log("\u{1F4E4} Enviando a Discord...");
         fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(discordPayload)
-        }).catch((error) => console.error("Error sending to Discord:", error));
+        }).then(() => console.log("\u2705 Mensaje enviado a Discord")).catch((error) => console.error("\u274C Error enviando a Discord:", error));
       }
       res.json({ success: true, requestId });
     } catch (error) {
-      console.error("Error in interview-request:", error);
+      console.error("\u274C Error in interview-request:", error);
       res.status(500).json({ error: "Error al procesar la solicitud" });
     }
   });
   app.get("/api/interview-requests", (req, res) => {
     try {
+      console.log(`\u{1F4CA} Obteniendo ${requestsStore.length} solicitudes`);
       res.json(requestsStore);
     } catch (error) {
-      console.error("Error fetching requests:", error);
+      console.error("\u274C Error fetching requests:", error);
       res.status(500).json({ error: "Error al obtener solicitudes" });
     }
   });
@@ -241,9 +232,10 @@ async function startServer() {
       const pending = requestsStore.filter((r) => r.status === "pending").length;
       const accepted = requestsStore.filter((r) => r.status === "accepted").length;
       const rejected = requestsStore.filter((r) => r.status === "rejected").length;
+      console.log(`\u{1F4C8} Stats: Total=${total}, Pending=${pending}, Accepted=${accepted}, Rejected=${rejected}`);
       res.json({ total, pending, accepted, rejected });
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("\u274C Error fetching stats:", error);
       res.status(500).json({ error: "Error al obtener estad\xEDsticas" });
     }
   });
@@ -251,30 +243,46 @@ async function startServer() {
     try {
       const { id } = req.params;
       const { status } = req.body;
+      console.log(`
+\u{1F504} Actualizando solicitud #${id} a estado: ${status}`);
       if (!["accepted", "rejected"].includes(status)) {
+        console.log("\u274C Estado inv\xE1lido");
         return res.status(400).json({ error: "Estado inv\xE1lido" });
       }
       const request = requestsStore.find((r) => r.id === parseInt(id));
       if (!request) {
+        console.log(`\u274C Solicitud #${id} no encontrada`);
         return res.status(404).json({ error: "Solicitud no encontrada" });
       }
       request.status = status;
       request.updated_at = /* @__PURE__ */ new Date();
+      console.log(`\u2705 Estado actualizado a: ${status}`);
       const emailTemplate = status === "accepted" ? getAcceptanceEmailTemplate(request.name, request.position) : getRejectionEmailTemplate(request.name);
       const emailSubject = status === "accepted" ? "\xA1Felicidades! Has sido aceptado para una entrevista en NextCAD" : "Gracias por tu inter\xE9s en NextCAD";
-      await sendEmail(request.email, emailSubject, emailTemplate);
-      res.json({ success: true, message: `Solicitud ${status === "accepted" ? "aceptada" : "rechazada"} y email enviado` });
+      const emailSent = await sendEmail(request.email, emailSubject, emailTemplate);
+      if (emailSent) {
+        console.log(`\u2705 Email enviado a ${request.email}`);
+        res.json({ success: true, message: `Solicitud ${status === "accepted" ? "aceptada" : "rechazada"} y email enviado` });
+      } else {
+        console.log(`\u26A0\uFE0F Email no se envi\xF3 a ${request.email}`);
+        res.status(500).json({ error: "Solicitud actualizada pero email no se envi\xF3" });
+      }
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.error("\u274C Error updating status:", error);
       res.status(500).json({ error: "Error al actualizar solicitud" });
     }
+  });
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: /* @__PURE__ */ new Date() });
   });
   app.get("*", (_req, res) => {
     res.sendFile(path.join(staticPath, "index.html"));
   });
   const port = process.env.PORT || 3e3;
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    console.log(`
+\u2705 Servidor corriendo en puerto ${port}`);
+    console.log(`\u{1F310} http://localhost:${port}/`);
   });
 }
 startServer().catch(console.error);

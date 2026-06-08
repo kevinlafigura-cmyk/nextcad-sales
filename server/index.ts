@@ -1,8 +1,6 @@
 import express from "express";
-import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "node:url";
-import fetch from "node-fetch";
 import nodemailer from "nodemailer";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,17 +18,17 @@ const transporter = nodemailer.createTransport({
 // Función para enviar emails
 async function sendEmail(to: string, subject: string, htmlContent: string) {
   try {
-    console.log(`📧 Intentando enviar email a ${to}...`);
+    console.log(`📧 Enviando email a ${to}...`);
     await transporter.sendMail({
       from: process.env.GMAIL_ADDRESS,
       to,
       subject,
       html: htmlContent
     });
-    console.log(`✅ Email enviado exitosamente a ${to}`);
+    console.log(`✅ Email enviado a ${to}`);
     return true;
   } catch (error) {
-    console.error(`❌ Error enviando email a ${to}:`, error);
+    console.error(`❌ Error enviando email:`, error);
     return false;
   }
 }
@@ -51,8 +49,6 @@ function getAcceptanceEmailTemplate(name: string, position: string) {
           .highlight { background: #e3f2fd; padding: 15px; border-left: 4px solid #0066cc; margin: 20px 0; border-radius: 4px; }
           .button { display: inline-block; background: #0066cc; color: white; padding: 12px 28px; border-radius: 4px; text-decoration: none; margin-top: 20px; font-weight: 600; }
           .footer { background: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 12px; color: #999; }
-          .social { margin-top: 15px; }
-          .social a { color: #0066cc; text-decoration: none; margin: 0 10px; }
         </style>
       </head>
       <body>
@@ -146,74 +142,50 @@ function getRejectionEmailTemplate(name: string) {
   `;
 }
 
-// Almacenamiento en memoria (temporal)
+// Almacenamiento en memoria
 const requestsStore: any[] = [];
 let requestIdCounter = 1;
 
-async function startServer() {
-  const app = express();
-  const server = createServer(app);
+const app = express();
 
-  // Middleware
-  app.use(express.json());
+// Middleware
+app.use(express.json());
 
-  // Serve static files from dist/public in production
-  const staticPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist", "public");
+// Serve static files
+const staticPath = path.resolve(__dirname, "..", "dist", "public");
+app.use(express.static(staticPath));
 
-  app.use(express.static(staticPath));
+console.log("🚀 Iniciando servidor NextCAD");
+console.log(`📁 Static path: ${staticPath}`);
 
-  console.log("🚀 Iniciando servidor NextCAD...");
-  console.log(`📁 Static path: ${staticPath}`);
-  console.log(`📧 Gmail: ${process.env.GMAIL_ADDRESS}`);
-  console.log(`🔗 Discord Webhook: ${process.env.DISCORD_WEBHOOK_URL ? "✅ Configurado" : "❌ No configurado"}`);
+// API: Recibir solicitud de entrevista
+app.post("/api/interview-request", async (req, res) => {
+  try {
+    const { name, email, discord, robloxUser, position, message } = req.body;
 
-  // API: Recibir solicitud de entrevista
-  app.post("/api/interview-request", async (req, res) => {
-    try {
-      console.log("\n📝 Nueva solicitud recibida:", req.body);
-      const { name, email, discord, robloxUser, position, message } = req.body;
+    if (!name || !email || !discord || !robloxUser || !position || !message) {
+      return res.status(400).json({ error: "Faltan campos requeridos" });
+    }
 
-      // Validar datos
-      if (!name || !email || !discord || !robloxUser || !position || !message) {
-        console.log("❌ Faltan campos requeridos");
-        return res.status(400).json({ error: "Faltan campos requeridos" });
-      }
+    const requestId = requestIdCounter++;
 
-      if (message.length < 50) {
-        console.log("❌ Mensaje muy corto");
-        return res.status(400).json({ error: "El mensaje debe tener al menos 50 caracteres" });
-      }
+    requestsStore.push({
+      id: requestId,
+      name,
+      email,
+      discord,
+      roblox_user: robloxUser,
+      position,
+      message,
+      status: "pending",
+      created_at: new Date()
+    });
 
-      const requestId = requestIdCounter++;
+    console.log(`✅ Solicitud #${requestId} guardada`);
 
-      // Guardar en memoria
-      const newRequest = {
-        id: requestId,
-        name,
-        email,
-        discord,
-        roblox_user: robloxUser,
-        position,
-        message,
-        status: "pending",
-        created_at: new Date()
-      };
-
-      requestsStore.push(newRequest);
-      console.log(`✅ Solicitud guardada con ID #${requestId}`);
-
-      // Enviar a Discord
-      const positionLabel: Record<string, string> = {
-        soporte: "Soporte",
-        administracion: "Administración",
-        moderador: "Moderador",
-        developer: "Developer",
-        "community-manager": "Community Manager"
-      };
-
+    // Enviar a Discord
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (webhookUrl) {
       const discordPayload = {
         embeds: [
           {
@@ -224,7 +196,7 @@ async function startServer() {
               { name: "Email", value: email, inline: true },
               { name: "Discord", value: discord, inline: true },
               { name: "Usuario Roblox", value: robloxUser, inline: true },
-              { name: "Puesto Solicitado", value: positionLabel[position] || position, inline: true },
+              { name: "Puesto Solicitado", value: position, inline: true },
               { name: "ID Solicitud", value: `#${requestId}`, inline: true },
               { name: "Mensaje", value: message, inline: false },
               { name: "Fecha", value: new Date().toLocaleString("es-ES"), inline: false }
@@ -234,117 +206,91 @@ async function startServer() {
         ]
       };
 
-      const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-      if (webhookUrl) {
-        console.log("📤 Enviando a Discord...");
-        fetch(webhookUrl, {
+      try {
+        const response = await fetch(webhookUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(discordPayload)
-        })
-          .then(() => console.log("✅ Mensaje enviado a Discord"))
-          .catch(error => console.error("❌ Error enviando a Discord:", error));
+        });
+        console.log(`📤 Discord: ${response.status}`);
+      } catch (err) {
+        console.error("❌ Error Discord:", err);
       }
-
-      res.json({ success: true, requestId });
-    } catch (error) {
-      console.error("❌ Error in interview-request:", error);
-      res.status(500).json({ error: "Error al procesar la solicitud" });
     }
-  });
 
-  // API: Obtener todas las solicitudes (para admin)
-  app.get("/api/interview-requests", (req, res) => {
-    try {
-      console.log(`📊 Obteniendo ${requestsStore.length} solicitudes`);
-      res.json(requestsStore);
-    } catch (error) {
-      console.error("❌ Error fetching requests:", error);
-      res.status(500).json({ error: "Error al obtener solicitudes" });
+    res.json({ success: true, requestId });
+  } catch (error) {
+    console.error("❌ Error:", error);
+    res.status(500).json({ error: "Error al procesar la solicitud" });
+  }
+});
+
+// API: Obtener solicitudes
+app.get("/api/interview-requests", (req, res) => {
+  res.json(requestsStore);
+});
+
+// API: Obtener estadísticas
+app.get("/api/interview-requests/stats", (req, res) => {
+  const total = requestsStore.length;
+  const pending = requestsStore.filter(r => r.status === "pending").length;
+  const accepted = requestsStore.filter(r => r.status === "accepted").length;
+  const rejected = requestsStore.filter(r => r.status === "rejected").length;
+
+  res.json({ total, pending, accepted, rejected });
+});
+
+// API: Actualizar estado
+app.post("/api/interview-request/:id/status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    console.log(`🔄 Actualizando #${id} a ${status}`);
+
+    if (!["accepted", "rejected"].includes(status)) {
+      return res.status(400).json({ error: "Estado inválido" });
     }
-  });
 
-  // API: Obtener estadísticas
-  app.get("/api/interview-requests/stats", (req, res) => {
-    try {
-      const total = requestsStore.length;
-      const pending = requestsStore.filter(r => r.status === "pending").length;
-      const accepted = requestsStore.filter(r => r.status === "accepted").length;
-      const rejected = requestsStore.filter(r => r.status === "rejected").length;
+    const request = requestsStore.find(r => r.id === parseInt(id));
 
-      console.log(`📈 Stats: Total=${total}, Pending=${pending}, Accepted=${accepted}, Rejected=${rejected}`);
-      res.json({ total, pending, accepted, rejected });
-    } catch (error) {
-      console.error("❌ Error fetching stats:", error);
-      res.status(500).json({ error: "Error al obtener estadísticas" });
+    if (!request) {
+      return res.status(404).json({ error: "Solicitud no encontrada" });
     }
-  });
 
-  // API: Actualizar estado de solicitud
-  app.post("/api/interview-request/:id/status", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { status } = req.body;
+    request.status = status;
+    request.updated_at = new Date();
 
-      console.log(`\n🔄 Actualizando solicitud #${id} a estado: ${status}`);
+    const emailTemplate = status === "accepted" 
+      ? getAcceptanceEmailTemplate(request.name, request.position)
+      : getRejectionEmailTemplate(request.name);
 
-      if (!["accepted", "rejected"].includes(status)) {
-        console.log("❌ Estado inválido");
-        return res.status(400).json({ error: "Estado inválido" });
-      }
+    const emailSubject = status === "accepted"
+      ? "¡Felicidades! Has sido aceptado para una entrevista en NextCAD"
+      : "Gracias por tu interés en NextCAD";
 
-      const request = requestsStore.find(r => r.id === parseInt(id));
+    await sendEmail(request.email, emailSubject, emailTemplate);
 
-      if (!request) {
-        console.log(`❌ Solicitud #${id} no encontrada`);
-        return res.status(404).json({ error: "Solicitud no encontrada" });
-      }
+    console.log(`✅ Solicitud #${id} actualizada y email enviado`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("❌ Error updating status:", error);
+    res.status(500).json({ error: "Error al actualizar solicitud" });
+  }
+});
 
-      // Actualizar estado
-      request.status = status;
-      request.updated_at = new Date();
-      console.log(`✅ Estado actualizado a: ${status}`);
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
-      // Enviar email
-      const emailTemplate = status === "accepted" 
-        ? getAcceptanceEmailTemplate(request.name, request.position)
-        : getRejectionEmailTemplate(request.name);
+// Serve index.html for all other routes
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(staticPath, "index.html"));
+});
 
-      const emailSubject = status === "accepted"
-        ? "¡Felicidades! Has sido aceptado para una entrevista en NextCAD"
-        : "Gracias por tu interés en NextCAD";
+const port = process.env.PORT || 3000;
 
-      const emailSent = await sendEmail(request.email, emailSubject, emailTemplate);
-
-      if (emailSent) {
-        console.log(`✅ Email enviado a ${request.email}`);
-        res.json({ success: true, message: `Solicitud ${status === "accepted" ? "aceptada" : "rechazada"} y email enviado` });
-      } else {
-        console.log(`⚠️ Email no se envió a ${request.email}`);
-        res.status(500).json({ error: "Solicitud actualizada pero email no se envió" });
-      }
-    } catch (error) {
-      console.error("❌ Error updating status:", error);
-      res.status(500).json({ error: "Error al actualizar solicitud" });
-    }
-  });
-
-  // Health check
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: new Date() });
-  });
-
-  // Handle client-side routing - serve index.html for all routes
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(staticPath, "index.html"));
-  });
-
-  const port = process.env.PORT || 3000;
-
-  server.listen(port, () => {
-    console.log(`\n✅ Servidor corriendo en puerto ${port}`);
-    console.log(`🌐 http://localhost:${port}/`);
-  });
-}
-
-startServer().catch(console.error);
+app.listen(port, () => {
+  console.log(`✅ Servidor corriendo en puerto ${port}`);
+});
